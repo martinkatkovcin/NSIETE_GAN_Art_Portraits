@@ -7,7 +7,7 @@ import torchvision.transforms as tvf
 from torch.utils.data import DataLoader
 
 
-DATASET_BASEDIR = "data/"
+DATASET_BASEDIR = "../data/"
 
 def _get_root_dir(name):
     rootdir = os.path.join(DATASET_BASEDIR, name)

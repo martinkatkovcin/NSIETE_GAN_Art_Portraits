@@ -1,8 +1,12 @@
 import os
 import cv2
+from PIL import Image
+from io import BytesIO
 
 import torch
 import numpy as np
+import matplotlib.pyplot as plt
+import wandb
 
 from pathlib import Path
 
@@ -88,7 +92,29 @@ class ConsoleLogger(Logger):
             print(line)
 
 
+#------------------------------------------------------------------------------
+#   WandbLogger
+#------------------------------------------------------------------------------
 
+class WandbLogger(Logger):
+    def __init__(self, args):
+        wandb.config.update({'iterations': args.iters,
+                             'image_size': args.image_size,
+                             'batch_size': args.batch_size,
+                             'lr_gen': args.lr_gen,
+                             'lr_dis': args.lr_dis
+                             })
+
+        self.interval = 100
+
+    def on_iteration(self, it, stats):
+        if (it % self.interval) == 0:
+            wandb.log({k: stats[k] for k in stats.keys()})
+
+
+    def on_training_end(self):
+        wandb.save(f'.scratch/runs/gan-{date.today().strftime("%Y-%m-%d")}-{args.name}')
+        wandb.finish()
 
 #------------------------------------------------------------------------------
 #   Image Sampler
@@ -169,5 +195,13 @@ class ImageSampler(Logger):
             name="{}{}".format(prefix, "sample"),
             image=image
             )
+
+        plt.imshow(image)
+        image_data = BytesIO()
+        plt.savefig(image_data, format='png')
+        image_data.seek(0)
+        img = wandb.Image(Image.open(image_data))
+
+        wandb.log({'generated_images': img})
 
 

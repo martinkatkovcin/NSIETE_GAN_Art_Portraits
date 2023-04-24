@@ -1,17 +1,20 @@
 import argparse
+import wandb
 
 import ganlib.loggers as l
 from trainer import Trainer
 
 
 def do_train(args):
-
+    wandb.login()
+    run = wandb.init(project="portrait-gan", id=args.name)
    
     trainer = Trainer(args)
 
     # Setup our logging
     trainer.setup(
         loggers=[
+            l.WandbLogger(args=args),
             l.ConsoleLogger(interval=args.log_interval),
             #l.CheckpointMaker(trainer, interval=10*1000),
             l.ImageSampler(
@@ -57,3 +60,5 @@ if (__name__ == "__main__"):
 
     # Execute training
     do_train(p.parse_args())
+
+

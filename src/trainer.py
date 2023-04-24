@@ -20,6 +20,7 @@ class Trainer:
 
         # CUDA / CPU
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        self.device = 'mps'
 
         # Get our data source
         self.ds = DataSource(args, self.device)
