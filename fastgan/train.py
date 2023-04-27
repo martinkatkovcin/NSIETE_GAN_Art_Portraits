@@ -55,7 +55,7 @@ def train_d(net, data, label="real"):
 
 def train(args):
 
-    data_root = '/Users/martinkatkovcin/Documents/School/NSIETE/Zadanie3/data/Portraits'
+    data_root = '../data/Portraits'
     total_iterations = args.iter
     checkpoint = args.ckpt
     batch_size = args.batch_size
