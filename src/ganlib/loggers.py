@@ -148,6 +148,20 @@ class ImageFileSink:
         cv2.imwrite(fnCurrent, image)
 
 
+class ImageWandbSink:
+    def __init__(self, trainer):
+        self.trainer = trainer
+
+    def write(self, i, name, image):
+        plt.imshow(image)
+        image_data = BytesIO()
+        plt.savefig(image_data, format='png')
+        image_data.seek(0)
+        img = wandb.Image(Image.open(image_data))
+
+        wandb.log({'generated_images': img})
+
+
 class Sinks:
     def __init__(self, sinks):
         self.sinks = sinks
@@ -160,6 +174,7 @@ class Sinks:
 class ImageSampler(Logger):
     def __init__(self, trainer, interval, sinks, shape):
         self.trainer = trainer
+        self.architecture = trainer.args.architecture
         self.interval = interval
         self.sink = Sinks(sinks)
 
@@ -169,7 +184,10 @@ class ImageSampler(Logger):
         self.counter = 0
 
         # Random Z vector
-        self.z = torch.randn(size=(self.nImages, trainer.args.zdim))
+        if self.architecture == 'wgan-gp':
+            self.z = torch.randn(self.nImages, trainer.args.zdim, 1, 1)
+        else:
+            self.z = torch.randn(size=(self.nImages, trainer.args.zdim))
         self.z = self.z.to(trainer.device)
 
 
@@ -195,13 +213,3 @@ class ImageSampler(Logger):
             name="{}{}".format(prefix, "sample"),
             image=image
             )
-
-        plt.imshow(image)
-        image_data = BytesIO()
-        plt.savefig(image_data, format='png')
-        image_data.seek(0)
-        img = wandb.Image(Image.open(image_data))
-
-        wandb.log({'generated_images': img})
-
-
