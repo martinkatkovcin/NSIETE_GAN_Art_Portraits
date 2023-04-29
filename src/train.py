@@ -44,8 +44,6 @@ if (__name__ == "__main__"):
                    type=str, help="Output folder for training runs")
 
     # Basic GAN settings
-    p.add_argument("--architecture", "-a", default="mlp", type=str,
-                   help="GAN architecture")
     p.add_argument("--loss", "-l", default="gan", type=str,
                    help="Loss function to use for training")
     p.add_argument("--dataset", "-d", default="portraits",

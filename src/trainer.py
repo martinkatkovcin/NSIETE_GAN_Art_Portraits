@@ -3,7 +3,7 @@ import torch
 import torch.optim as optim
 
 from ganlib.loggers import Loggers
-from ganlib.utils import initialize_experiment, TrainingStats, calculate_gradient_penalty
+from ganlib.utils import initialize_experiment, TrainingStats
 from datasource import DataSource
 from models import create_models, weights_init
 from losses import create_loss
@@ -70,17 +70,13 @@ class Trainer:
             Our main training loop
         '''
         self.log.training_start()
-        if (self.args.architecture == "wgan-gp"):
+        if (self.args.loss == "wgan-gp"):
             self.models["gen"] = self.models["gen"].apply(weights_init)
             self.models["dis"] = self.models["dis"].apply(weights_init)
-
-            for it in range(self.args.iters):
-                stats = self._train_iteration_wgan(it)
-                self.log.on_iteration(it, stats)
-        else:
-            for it in range(self.args.iters):
-                stats = self._train_iteration(it)
-                self.log.on_iteration(it, stats)
+        
+        for it in range(self.args.iters):
+            stats = self._train_iteration(it)
+            self.log.on_iteration(it, stats)
 
         self.log.training_end()
 
@@ -99,7 +95,10 @@ class Trainer:
         x = self.ds.get()
 
         # Sample random noise, and generate fake images
-        z = torch.randn(size=(x.size(0), self.args.zdim)).to(self.device)
+        if self.args.loss == 'wgan-gp':
+            z = torch.randn(x.size(0), self.args.zdim, 1, 1).to(self.device)
+        else:
+            z = torch.randn(size=(x.size(0), self.args.zdim)).to(self.device)
         x_fake = gen(z)
 
         #----------------------------------------------------------------------
@@ -124,61 +123,12 @@ class Trainer:
         loss_dis = (L.D(score_real, True) + L.D(score_fake, False)) * 0.5
         lD = loss_dis.cpu().detach().item()
 
+        # When training with WGAN-GP, we need to compute gradient penalty
+        if (self.args.loss == "wgan-gp"):
+            loss_dis += 10.0 * L.gradient_penalty(dis, x, x_fake)
+
         loss_dis.backward()
         od.step()
 
         # Update statistics
-        return self.stats.step(g=lG, d=lD)
-
-
-    def _train_iteration_wgan(self, it):
-        # Get our stuff
-        gen, dis, L = self.models["gen"], self.models["dis"], self.loss
-        og, od = self.opts["opt_g"], self.opts["opt_d"]
-
-        #----------------------------------------------------------------------
-        #   Forward pass
-        #----------------------------------------------------------------------
-
-        # Get a fresh batch of real images
-        x = self.ds.get()
-
-        # Sample random noise, and generate fake images
-        z = torch.randn(x.size(0), self.args.zdim, 1, 1).to(self.device)
-
-        #----------------------------------------------------------------------
-        #   Train Discriminator
-        #----------------------------------------------------------------------
-
-        od.zero_grad()
-        real_output = dis(x)
-        loss_dis_real = L.D(real_output, True)
-        lD = loss_dis_real.cpu().detach().item()
-
-        fake_images = gen(z)
-
-        fake_output = dis(fake_images.detach())
-        loss_dis_fake = L.D(fake_output, False)
-
-        gradient_penalty = calculate_gradient_penalty(dis, x.data, fake_images.data, self.device)
-
-        # Add the gradients from the all-real and all-fake batches
-        errD = -loss_dis_real + loss_dis_fake + gradient_penalty * 10
-        errD.backward()
-
-        od.step()
-
-        #----------------------------------------------------------------------
-        #   Train Generator
-        #----------------------------------------------------------------------
-
-        og.zero_grad()
-        fake_images = gen(z)
-        fake_output = dis(fake_images)
-        loss_gen = L.G(fake_output)
-        lG = loss_gen.cpu().detach().item()
-
-        loss_gen.backward()
-        og.step()
-
         return self.stats.step(g=lG, d=lD)

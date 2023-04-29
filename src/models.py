@@ -174,7 +174,7 @@ def create_models(args, shape, device):
     if (args.loss == "hinge"):
         use_sn = True
 
-    if args.architecture == "wgan-gp":
+    if args.loss == "wgan-gp":
         result = {
             # MLP generator
             "gen":  Gen_WGAN(zdim=args.zdim),
