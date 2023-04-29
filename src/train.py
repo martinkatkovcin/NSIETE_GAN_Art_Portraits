@@ -7,14 +7,14 @@ from trainer import Trainer
 
 def do_train(args):
     wandb.login()
-    run = wandb.init(project="portrait-gan", id=args.name)
+    #run = wandb.init(project="portrait-gan", id=args.name)
 
     trainer = Trainer(args)
 
     # Setup our logging
     trainer.setup(
         loggers=[
-            l.WandbLogger(args=args),
+            #l.WandbLogger(args=args),
             l.ConsoleLogger(interval=args.log_interval),
             # l.CheckpointMaker(trainer, interval=10*1000),
             l.ImageSampler(
@@ -22,7 +22,7 @@ def do_train(args):
                 interval=args.log_interval,
                 sinks=[
                     l.ImageFileSink(trainer, only_current=True),
-                    l.ImageWandbSink(trainer)
+                    #l.ImageWandbSink(trainer)
                 ],
                 shape=(3, 6)
             )
@@ -61,6 +61,8 @@ if (__name__ == "__main__"):
                    type=float, help="Generator learning rate")
     p.add_argument("--lr_dis", "-lrD", default=0.0002,
                    type=float, help="Discriminator learning rate")
+    p.add_argument("--use_hinge", "-uh", action="store_true",
+                   help="Use hinge loss in WGAN")
 
     # Logging
     p.add_argument("--log_interval", "-lit", default=1*1000,

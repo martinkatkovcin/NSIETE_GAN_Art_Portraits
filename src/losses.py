@@ -11,7 +11,7 @@ from torch.autograd import grad
 #------------------------------------------------------------------------------
 
 class VanillaGanLoss(nn.Module):
-    def __init__(self):
+    def __init__(self, use_hinge=False):
         super().__init__()
         self.loss = nn.BCEWithLogitsLoss()
  
@@ -34,7 +34,7 @@ class VanillaGanLoss(nn.Module):
 #------------------------------------------------------------------------------
 
 class HingeGanLoss(nn.Module):
-    def __init__(self):
+    def __init__(self, use_hinge=True):
         super().__init__()
 
     def D(self, score, is_real):
@@ -57,11 +57,17 @@ class WassersteinGanLoss(nn.Module):
     def __init__(self):
         super().__init__()
 
-    def D(self, score, is_real):
-        if (is_real):
-            loss = -score.mean()
+    def D(self, score, is_real, use_hinge=False):
+        if use_hinge:
+            if (is_real):
+                loss = F.relu(1 - score).mean()
+            else:
+                loss = F.relu(1 + score).mean()
         else:
-            loss = score.mean()
+            if (is_real):
+                loss = -score.mean()
+            else:
+                loss = score.mean()
         return loss
 
     def G(self, score):

@@ -120,7 +120,8 @@ class Trainer:
         od.zero_grad()
         score_real = dis(x)
         score_fake = dis(x_fake.detach())
-        loss_dis = (L.D(score_real, True) + L.D(score_fake, False)) * 0.5
+        loss_dis = (L.D(score_real, True, use_hinge=self.args.use_hinge) + 
+                    L.D(score_fake, False, use_hinge=self.args.use_hinge)) * 0.5
         lD = loss_dis.cpu().detach().item()
 
         # When training with WGAN-GP, we need to compute gradient penalty
