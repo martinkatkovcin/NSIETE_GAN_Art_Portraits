@@ -174,7 +174,6 @@ class Sinks:
 class ImageSampler(Logger):
     def __init__(self, trainer, interval, sinks, shape):
         self.trainer = trainer
-        self.architecture = trainer.args.architecture
         self.interval = interval
         self.sink = Sinks(sinks)
 
@@ -184,7 +183,7 @@ class ImageSampler(Logger):
         self.counter = 0
 
         # Random Z vector
-        if self.architecture == 'wgan-gp':
+        if trainer.args.loss == 'wgan-gp':
             self.z = torch.randn(self.nImages, trainer.args.zdim, 1, 1)
         else:
             self.z = torch.randn(size=(self.nImages, trainer.args.zdim))
