@@ -6,6 +6,9 @@ import torch.nn.functional as F
 from torch.utils.data.dataloader import DataLoader
 from torchvision import transforms
 from torchvision import utils as vutils
+import wandb
+from PIL import Image
+import datetime
 
 import argparse
 import random
@@ -54,6 +57,8 @@ def train_d(net, data, label="real"):
 
 
 def train(args):
+    wandb.login()
+    run = wandb.init(project="portrait-gan", id="FastGan-50_000-iterations")
 
     data_root = '../data/Portraits'
     total_iterations = args.iter
@@ -72,6 +77,13 @@ def train(args):
     save_interval = 100
     saved_model_folder, saved_image_folder = get_dir(args)
 
+    wandb.config.update({'iterations': args.iter,
+                 #'image_size': args.image_size,
+                 'batch_size': args.batch_size,
+                 'lr_gen': nlr,
+                 #'lr_dis': args.lr_dis
+                 })
+    
     device = torch.device("cpu")
     if use_cuda:
         device = torch.device("cuda:0")
@@ -166,6 +178,10 @@ def train(args):
         if iteration % 100 == 0:
             print("GAN: loss d: %.5f    loss g: %.5f" %
                   (err_dr, -err_g.item()))
+            wandb.log({'loss_d': round(err_dr, 5)})
+            wandb.log({'loss_g': round(-err_g.item(), 5)})
+            
+            
 
         if iteration % (save_interval*10) == 0:
             backup_para = copy_G_params(netG)
@@ -177,6 +193,9 @@ def train(args):
                     F.interpolate(real_image, 128),
                     rec_img_all, rec_img_small,
                     rec_img_part]).add(1).mul(0.5), saved_image_folder+'/rec_%d.jpg' % iteration)
+                img = wandb.Image(Image.open(saved_image_folder+'/%d.jpg' % iteration))
+                wandb.log({'generated_images': img})
+                
             load_params(netG, backup_para)
 
         if iteration % (save_interval*50) == 0 or iteration == total_iterations:
@@ -216,3 +235,6 @@ if __name__ == "__main__":
     print(args)
 
     train(args)
+    
+    wandb.save(f'.scratch/runs/gan-{datetime.date.today().strftime("%Y-%m-%d")}-FastGan-50_000-iterations')
+    wandb.finish()

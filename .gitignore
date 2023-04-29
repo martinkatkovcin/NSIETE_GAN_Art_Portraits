@@ -6,3 +6,7 @@ wandb/
 .vscode/
 .idea/
 .scratch/
+
+venv/
+fastgan/train_results/
+
