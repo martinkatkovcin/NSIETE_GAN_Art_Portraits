@@ -21,9 +21,6 @@ def linear_sn(*args, **kwargs):
 def conv2d_sn(*args, **kwargs):
     return spectral_norm(nn.Conv2d(*args, **kwargs))
 
-def convTranspose2d_sn(*args, **kwargs):
-    return spectral_norm(nn.ConvTranspose2d(*args, **kwargs))
-
 def batchNorm2d_sn(*args, **kwargs):
     return spectral_norm(nn.BatchNorm2d(*args, **kwargs))
 
@@ -106,11 +103,11 @@ class Gen_WGAN(nn.Module):
 
         def _convT2d(chin, chout, bn):
             if chin == 100:
-                layers = [convTranspose2d_sn(chin, chout, 4, 1, 0, bias=(not bn))]
+                layers = [nn.ConvTranspose2d(chin, chout, 4, 1, 0, bias=(not bn))]
             else:
-                layers = [convTranspose2d_sn(chin, chout, 4, 2, 1, bias=(not bn))]
+                layers = [nn.ConvTranspose2d(chin, chout, 4, 2, 1, bias=(not bn))]
             if (bn):
-                layers.append(batchNorm2d_sn(chout))
+                layers.append(nn.BatchNorm2d(chout))
             layers.append(nn.ReLU(True))
             return nn.Sequential(*layers)
 
@@ -125,7 +122,7 @@ class Gen_WGAN(nn.Module):
 
         # Final layer with TanH
         layers += [
-            convTranspose2d_sn(nin, 3, 4, 2, 1),
+            nn.ConvTranspose2d(nin, 3, 4, 2, 1),
             nn.Tanh()
         ]
 
