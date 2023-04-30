@@ -1,6 +1,7 @@
 
 import torch
 import torch.optim as optim
+import os
 
 from ganlib.loggers import Loggers
 from ganlib.utils import initialize_experiment, TrainingStats
@@ -79,6 +80,7 @@ class Trainer:
             self.log.on_iteration(it, stats)
 
         self.log.training_end()
+        os.makedirs(f".scratch/models/{self.args.name}", exist_ok=True)
         torch.save(self.models["gen"].state_dict(), f".scratch/models/{self.args.name}/generator.pth")
         torch.save(self.models["dis"].state_dict(), f".scratch/models/{self.args.name}/discriminator.pth")
 
