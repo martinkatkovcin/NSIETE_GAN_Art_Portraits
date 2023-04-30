@@ -2,6 +2,7 @@ import os
 import cv2
 from PIL import Image
 from io import BytesIO
+from datetime import date
 
 import torch
 import numpy as np
@@ -97,15 +98,17 @@ class ConsoleLogger(Logger):
 #------------------------------------------------------------------------------
 
 class WandbLogger(Logger):
-    def __init__(self, args):
-        wandb.config.update({'iterations': args.iters,
-                             'image_size': args.image_size,
-                             'batch_size': args.batch_size,
-                             'lr_gen': args.lr_gen,
-                             'lr_dis': args.lr_dis
+    def __init__(self, trainer):
+        self.trainer = trainer
+        wandb.config.update({'iterations': self.trainer.args.iters,
+                             'image_size': self.trainer.args.image_size,
+                             'batch_size': self.trainer.args.batch_size,
+                             'lr_gen': self.trainer.args.lr_gen,
+                             'lr_dis': self.trainer.args.lr_dis
                              })
 
         self.interval = 100
+
 
     def on_iteration(self, it, stats):
         if (it % self.interval) == 0:
@@ -113,7 +116,7 @@ class WandbLogger(Logger):
 
 
     def on_training_end(self):
-        wandb.save(f'.scratch/runs/gan-{date.today().strftime("%Y-%m-%d")}-{args.name}')
+        wandb.save(f'.scratch/runs/gan-{date.today().strftime("%Y-%m-%d")}-{self.trainer.args.name}')
         wandb.finish()
 
 #------------------------------------------------------------------------------

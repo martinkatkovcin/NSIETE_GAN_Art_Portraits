@@ -79,6 +79,8 @@ class Trainer:
             self.log.on_iteration(it, stats)
 
         self.log.training_end()
+        torch.save(self.models["gen"].state_dict(), f".scratch/models/{self.args.name}/generator.pth")
+        torch.save(self.models["dis"].state_dict(), f".scratch/models/{self.args.name}/discriminator.pth")
 
 
     def _train_iteration(self, it):

@@ -14,7 +14,7 @@ def do_train(args):
     # Setup our logging
     trainer.setup(
         loggers=[
-            l.WandbLogger(args=args),
+            l.WandbLogger(trainer),
             l.ConsoleLogger(interval=args.log_interval),
             # l.CheckpointMaker(trainer, interval=10*1000),
             l.ImageSampler(
