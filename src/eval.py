@@ -29,8 +29,8 @@ if __name__ == "__main__":
     parser.add_argument('--zdim', type=int, default=100)
     args = parser.parse_args()
 
-    #device = torch.device('cuda:%d'%(args.cuda))
-    device = torch.device('mps')
+    device = torch.device('cuda:%d'%(args.cuda))
+    #device = torch.device('mps')
 
     gen = create_eval(args=args)
     gen.to(device)

@@ -8,5 +8,5 @@ wandb/
 .scratch/
 
 venv/
-fastgan/train_results/test1/models/
+train_results/
 
