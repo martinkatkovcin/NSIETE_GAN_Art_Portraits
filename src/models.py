@@ -202,3 +202,7 @@ def create_models(args, shape, device):
         print("")
 
     return result
+
+
+def create_eval(args):
+    return Gen_WGAN(zdim=args.zdim)
